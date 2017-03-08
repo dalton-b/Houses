@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace Houses
 {
@@ -13,55 +14,31 @@ namespace Houses
     {
         static void Main(string[] args)
         {
-            WebClient webClient = new WebClient();
-            string s = webClient.DownloadString("http://en.wikipedia.org/wiki/Main_Page");
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.apartmentguide.com/apartments/Connecticut/Simsbury/Mill-Commons/187207/");
 
-            foreach(LinkItem i in LinkFinder.Find(s))
+            request.CookieContainer = new CookieContainer();
+            request.AllowAutoRedirect = false;
+            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+
+            request.Method = "GET";
+
+            string source;
+            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
             {
-                Debug.WriteLine(i);
+                source = reader.ReadToEnd();
             }
 
+            //Debug.WriteLine(source);
 
-        }
-    }
+            Regex latReg = new Regex(@"data-lat=\""(.*?)\""");
+            MatchCollection mc = latReg.Matches(source);
+            double latitude = Convert.ToDouble(mc[0].Groups[1].Value);
+            Debug.WriteLine("Latitude: " + latitude);
 
-    static class LinkFinder
-    {
-        public static List<LinkItem> Find(string file)
-        {
-            List<LinkItem> list = new List<LinkItem>();
-
-            MatchCollection m1 = Regex.Matches(file, @"(<a.*?>.*?</a>)", RegexOptions.Singleline);
-            foreach(Match m in m1)
-            {
-                string value = m.Groups[1].Value;
-                LinkItem i = new LinkItem();
-
-                Match m2 = Regex.Match(value, @"href=\""(.*?)\""", RegexOptions.Singleline);
-                if(m2.Success)
-                {
-                    i.Href = m2.Groups[1].Value;
-                }
-
-
-                string t = Regex.Replace(value, @"\s*<.*?>\s*", "", RegexOptions.Singleline);
-                i.Text = t;
-
-                list.Add(i);
-            }
-
-            return list;
-        }
-    }
-
-    public struct LinkItem
-    {
-        public string Href;
-        public string Text;
-
-        public override string ToString()
-        {
-            return Href + "\n\t" + Text;
+            Regex lngReg = new Regex(@"data-lng=\""(.*?)\""");
+            mc = lngReg.Matches(source);
+            double longitude = Convert.ToDouble(mc[0].Groups[1].Value);
+            Debug.WriteLine("Longitude: " + longitude);
         }
     }
 }
