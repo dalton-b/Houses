@@ -48,7 +48,6 @@ namespace Houses
                 i.Text = t;
 
                 list.Add(i);
-               
             }
 
             return list;
