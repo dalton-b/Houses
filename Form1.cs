@@ -33,28 +33,34 @@ namespace Houses
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
-            //Get the HTML
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.apartmentguide.com/apartments/Connecticut/Manchester/Brook-Haven-Apartments/100011973/");
-            //I think we need cookies
-            request.CookieContainer = new CookieContainer();
-            //Not totally sure what this does
-            request.AllowAutoRedirect = false;
-            //Pretend we're the googlebot by using its user agent
-            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
-            //Not at all sure what this does
-            request.Method = "GET";
-            //Read the HTML and store it in this string
-            string source;
-            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
-            {
-                source = reader.ReadToEnd();
-            }
+            
+
+            HashSet<string> siteHash = spider.getWebsiteList("http://www.apartmentguide.com/apartments/Connecticut/Manchester/");
 
             List<Home> homes = new List<Home>();
 
+            HashSet<string> visitedHash = new HashSet<string>();
+
             //Pick out the important bits and add it to the database
-            homes.Add(spider.parseHTML(source));
-            homes[0].disp();
+            int count = 0;
+            foreach(string s in siteHash)
+            {
+                if(visitedHash.Contains("http://www.apartmentguide.com/apartments/Connecticut/Manchester/" + s) != true)
+                {
+                    string source = spider.getHTML("http://www.apartmentguide.com/apartments/Connecticut/Manchester/" + s);
+                    visitedHash.Add("http://www.apartmentguide.com/apartments/Connecticut/Manchester/" + s);
+                    homes.Add(spider.parseHTML(source));
+                    homes[count].disp();
+                    count++;
+                }
+
+
+            }
+
+            //for(int i = 0; i < homes.Count; i++)
+            //{
+            //    homes[i].disp();
+            //}
 
             //Create markers
             GMapOverlay pins = new GMapOverlay("markers");

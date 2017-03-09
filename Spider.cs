@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -9,6 +12,66 @@ namespace Houses
 {
     class Spider
     {
+        public HashSet<string> getWebsiteList(string domain)
+        {
+            HashSet<string> output = new HashSet<string>();
+
+            //Get the HTML
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(domain);
+            //I think we need cookies
+            request.CookieContainer = new CookieContainer();
+            //Not totally sure what this does
+            request.AllowAutoRedirect = false;
+            //Pretend we're the googlebot by using its user agent
+            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+            //Not at all sure what this does
+            request.Method = "GET";
+            //Read the HTML and store it in this string
+            string source;
+            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
+            {
+                source = reader.ReadToEnd();
+            }
+
+            //This needs to be fixed to reflect the domain. Some day
+            Regex urlReg = new Regex(@"href=\""/apartments/Connecticut/Manchester/(.*?)\""");
+            MatchCollection urlColl = urlReg.Matches(source);
+            for(int i = 0; i < urlColl.Count; i++)
+            {
+                output.Add(urlColl[i].Groups[1].Value);
+            }
+
+            //foreach(string s in output)
+            //{
+            //    Debug.WriteLine(s);
+            //}
+
+
+            return output;
+        }
+
+        public string getHTML(string url)
+        {
+            //Get the HTML
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+            //I think we need cookies
+            request.CookieContainer = new CookieContainer();
+            //Not totally sure what this does
+            request.AllowAutoRedirect = false;
+            //Pretend we're the googlebot by using its user agent
+            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+            //Not at all sure what this does
+            request.Method = "GET";
+            //Read the HTML and store it in this string
+            string source;
+            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
+            {
+                source = reader.ReadToEnd();
+            }
+
+            return source;
+        }
+
         //Pick out important info and add it to the database
         public Home parseHTML(string source)
         {
