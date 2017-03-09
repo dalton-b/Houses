@@ -1,7 +1,7 @@
 ﻿Bug Tracking Database
 
 Bug || Fixed Date
-Some prices showing too high (maybe not being averaged?) || TO-DO
+Some prices showing too high (maybe not being averaged?) || DONE (They used 99999 randomly)
 Pins don't appear before map is scrolled || TO-DO
 Seems to only work for Manchester || TO-DO
 
