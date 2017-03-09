@@ -18,6 +18,7 @@ namespace Houses
         double _price;
         string _date;
 
+        //Constructor
         public Home(double latitude, double longitude, string address, string city, 
             string state, string url, double price, string date)
         {
@@ -45,6 +46,7 @@ namespace Houses
 
         }
 
+        //Getters and setters
         public double Latitude
         {
             get

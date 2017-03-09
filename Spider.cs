@@ -12,47 +12,30 @@ namespace Houses
 {
     class Spider
     {
+        //Given a domain to search, get a list of the links on that page
         public HashSet<string> getWebsiteList(string domain)
         {
             HashSet<string> output = new HashSet<string>();
 
-            //Get the HTML
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(domain);
-            //I think we need cookies
-            request.CookieContainer = new CookieContainer();
-            //Not totally sure what this does
-            request.AllowAutoRedirect = false;
-            //Pretend we're the googlebot by using its user agent
-            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
-            //Not at all sure what this does
-            request.Method = "GET";
-            //Read the HTML and store it in this string
-            string source;
-            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
-            {
-                source = reader.ReadToEnd();
-            }
+            //Grab the HTML
+            string source = getHTML(domain);
 
-            //This needs to be fixed to reflect the domain. Some day
-            Regex urlReg = new Regex(@"href=\""/apartments/Connecticut/Manchester/(.*?)\""");
+            //Search for urls by using the domain
+            // \u0022 is the " character, I was having some issues using a quote within a regex
+            Regex urlReg = new Regex(@"href=" + '\u0022' + domain.Replace("http://www.apartmentguide.com", "") + "(.*?)\"");
             MatchCollection urlColl = urlReg.Matches(source);
+
+            //Iterate over all the results and conditionally add them to the output
             for(int i = 0; i < urlColl.Count; i++)
             {
-                //get rid of urls that say "scroll to ID" and are otherwise duplicates
-                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false)
+                //Get rid of urls that say "scroll to ID" because they're duplicates
+                //Also get rid of urls with too few '/', these all go to irrelevant pages
+                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 3)
                 {
                     output.Add(urlColl[i].Groups[1].Value);
-                    //Debug.WriteLine(urlColl[i].Groups[1].Value);
                 }
 
             }
-
-            //foreach(string s in output)
-            //{
-            //    Debug.WriteLine(s);
-            //}
-
-
             return output;
         }
 
@@ -74,13 +57,14 @@ namespace Houses
             {
                 source = reader.ReadToEnd();
             }
-
             return source;
         }
 
         //Pick out important info and add it to the database
         public Home parseHTML(string source)
         {
+            //If we don't have latitude and longitude, this page doesn't contain the info we want
+            //So we just return null
             double latitude = 0;
             double longitude = 0;
             try
@@ -127,6 +111,8 @@ namespace Houses
             double samplesUsed = 0;
             for (int i = 0; i < priceColl.Count; i++)
             {
+                //Don't take the price if it's 99999, sometimes they use that as
+                //some kind of default value
                 if(Convert.ToDouble(priceColl[i].Groups[1].Value) != 99999)
                 {
                     priceTotal += Convert.ToDouble(priceColl[i].Groups[1].Value);
@@ -138,24 +124,13 @@ namespace Houses
                     samplesUsed++;
                 }
             }
+            //Use the total and the number of prices to get the average
             double price = Math.Round(priceTotal / samplesUsed);
 
             //Date of search
             string thisDay = DateTime.Today.ToString().Split(' ')[0];
 
-            if(latitude == 0 || longitude == 0)
-            {
-                return null;
-            }
-            else
-            {
-                return new Home(latitude, longitude, address, city, state, url, price, thisDay);
-            }
-
-
-
-
+            return new Home(latitude, longitude, address, city, state, url, price, thisDay);
         }
-
     }
 }
