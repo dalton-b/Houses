@@ -32,7 +32,7 @@ namespace Houses
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
             //Get the HTML
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.apartmentguide.com/apartments/Connecticut/Simsbury/Mill-Commons/187207/");
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.apartmentguide.com/apartments/Connecticut/Manchester/Brook-Haven-Apartments/100011973/");
             //I think we need cookies
             request.CookieContainer = new CookieContainer();
             //Not totally sure what this does
@@ -48,8 +48,11 @@ namespace Houses
                 source = reader.ReadToEnd();
             }
 
+            List<Home> homes = new List<Home>();
+
             //Pick out the important bits and add it to the database
-            parseHTML(source);
+            homes.Add(parseHTML(source));
+            homes[0].disp();
 
             //Create markers
             GMapOverlay pins = new GMapOverlay("markers");
@@ -61,48 +64,53 @@ namespace Houses
         }
 
         //Pick out important info and add it to the database
-        public void parseHTML(string source)
+        public Home parseHTML(string source)
         {
             //Latitude
             Regex latReg = new Regex(@"data-lat=\""(.*?)\""");
             MatchCollection latColl = latReg.Matches(source);
             double latitude = Convert.ToDouble(latColl[0].Groups[1].Value);
-            Debug.WriteLine("Latitude: " + latitude);
 
             //Longitude
             Regex lngReg = new Regex(@"data-lng=\""(.*?)\""");
             MatchCollection lngColl = lngReg.Matches(source);
             double longitude = Convert.ToDouble(lngColl[0].Groups[1].Value);
-            Debug.WriteLine("Longitude: " + longitude);
 
             //Address
+            Regex addressReg = new Regex(@"<span itemprop=\""streetAddress\"">(.*?), </span>");
+            MatchCollection addressColl = addressReg.Matches(source);
+            string address = addressColl[0].Groups[1].Value;
 
             //City
             Regex cityReg = new Regex(@"city&quot;:&quot;(.*?)&quot;");
             MatchCollection cityColl = cityReg.Matches(source);
             string city = cityColl[0].Groups[1].Value;
-            Debug.WriteLine("City: " + city);
 
             //State
             Regex stateReg = new Regex(@"state&quot;:&quot;(.*?)&quot;");
             MatchCollection stateColl = stateReg.Matches(source);
             string state = stateColl[0].Groups[1].Value;
-            Debug.WriteLine("State: " + state);
-
 
             //URL
             Regex urlReg = new Regex(@"href=\'(.*?)\'");
             MatchCollection urlColl = urlReg.Matches(source);
             string url = urlColl[0].Groups[1].Value;
-            Debug.WriteLine("URL: " + url);
 
             //Price (average in building for a 1 bedroom)
-
-
+            Regex priceReg = new Regex(@"&quot;bed_high&quot;:1,&quot;bed_low&quot;:1,&quot;bed_price_high&quot;:(.*?),&quot;bed_price_low&quot;:(.*?),&quot;");
+            MatchCollection priceColl = priceReg.Matches(source);
+            double priceTotal = 0;
+            for(int i = 0; i<priceColl.Count; i++)
+            {
+                priceTotal += Convert.ToDouble(priceColl[i].Groups[1].Value);
+                priceTotal += Convert.ToDouble(priceColl[i].Groups[2].Value);
+            }
+            double price = Math.Round(priceTotal / (priceColl.Count * 2));
 
             //Date of search
-            string thisDay = DateTime.Today.ToString();
-            Debug.WriteLine(thisDay);
+            string thisDay = DateTime.Today.ToString().Split(' ')[0];
+
+            return new Home(latitude, longitude, address, city, state, url, price, thisDay);
         }
 
     }
