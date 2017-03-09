@@ -26,84 +26,71 @@ namespace Houses
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //Set up the map(???) and center it on Harford
+            //Create the spider object so it can start crawlin' the web
+            Spider spider = new Houses.Spider();
+
+            //Set up the map and center it
             gmap.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
-            //Get the HTML
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.apartmentguide.com/apartments/Connecticut/Simsbury/Mill-Commons/187207/");
-            //I think we need cookies
-            request.CookieContainer = new CookieContainer();
-            //Not totally sure what this does
-            request.AllowAutoRedirect = false;
-            //Pretend we're the googlebot by using its user agent
-            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
-            //Not at all sure what this does
-            request.Method = "GET";
-            //Read the HTML and store it in this string
-            string source;
-            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
+            //The domain we'll be searching. Someday maybe it will be a text box input?
+            string domain = "http://www.apartmentguide.com/apartments/Connecticut/Manchester/";
+
+            //Retrieve the links on the given page
+            //Put them in hashset to eliminate duplicates
+            HashSet<string> siteHash = spider.getWebsiteList(domain);
+
+            //Create a hashset to get rid of duplicates, and the list to get rid of nulls
+            HashSet<Home> homeHash = new HashSet<Home>();
+            List<Home> homes = new List<Home>();
+
+
+            //Iterate over each link we grabbed
+            foreach(string s in siteHash)
             {
-                source = reader.ReadToEnd();
+                //Construct the web address
+                string webAddress = domain + s;
+                //Pull the source HTML
+                string source = spider.getHTML(webAddress);
+                //Pick out the important bits and add it to the 'database'
+                homeHash.Add(spider.parseHTML(source));
             }
 
-            //Pick out the important bits and add it to the database
-            parseHTML(source);
+            //Add them to a list if they're not null
+            foreach(Home home in homeHash)
+            {
+                if(home != null)
+                {
+                    homes.Add(home);
+                    home.disp();
+                }
+            }
+
 
             //Create markers
             GMapOverlay pins = new GMapOverlay("markers");
-            //GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(latitude, longitude), GMarkerGoogleType.green_small);
-            //pins.Markers.Add(marker);
-            //gmap.Overlays.Add(pins);
-
-
+            for (int i = 0; i < homes.Count; i++)
+            {
+                //Create a different color pin based on price
+                if(homes[i].Price <= 1100)
+                {
+                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
+                    pins.Markers.Add(pin);
+                }
+                else if(homes[i].Price > 1100 && homes[i].Price <= 1300)
+                {
+                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
+                    pins.Markers.Add(pin);
+                }
+                else if (homes[i].Price > 1300)
+                {
+                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
+                    pins.Markers.Add(pin);
+                }
+            }
+            //Add the pins to the map
+            gmap.Overlays.Add(pins);
         }
-
-        //Pick out important info and add it to the database
-        public void parseHTML(string source)
-        {
-            //Latitude
-            Regex latReg = new Regex(@"data-lat=\""(.*?)\""");
-            MatchCollection latColl = latReg.Matches(source);
-            double latitude = Convert.ToDouble(latColl[0].Groups[1].Value);
-            Debug.WriteLine("Latitude: " + latitude);
-
-            //Longitude
-            Regex lngReg = new Regex(@"data-lng=\""(.*?)\""");
-            MatchCollection lngColl = lngReg.Matches(source);
-            double longitude = Convert.ToDouble(lngColl[0].Groups[1].Value);
-            Debug.WriteLine("Longitude: " + longitude);
-
-            //Address
-
-            //City
-            Regex cityReg = new Regex(@"city&quot;:&quot;(.*?)&quot;");
-            MatchCollection cityColl = cityReg.Matches(source);
-            string city = cityColl[0].Groups[1].Value;
-            Debug.WriteLine("City: " + city);
-
-            //State
-            Regex stateReg = new Regex(@"state&quot;:&quot;(.*?)&quot;");
-            MatchCollection stateColl = stateReg.Matches(source);
-            string state = stateColl[0].Groups[1].Value;
-            Debug.WriteLine("State: " + state);
-
-
-            //URL
-            Regex urlReg = new Regex(@"href=\'(.*?)\'");
-            MatchCollection urlColl = urlReg.Matches(source);
-            string url = urlColl[0].Groups[1].Value;
-            Debug.WriteLine("URL: " + url);
-
-            //Price (average in building for a 1 bedroom)
-
-
-
-            //Date of search
-            string thisDay = DateTime.Today.ToString();
-            Debug.WriteLine(thisDay);
-        }
-
     }
 }
