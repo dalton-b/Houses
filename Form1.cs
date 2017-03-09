@@ -63,8 +63,23 @@ namespace Houses
             GMapOverlay pins = new GMapOverlay("markers");
             for (int i = 0; i < homes.Count; i++)
             {
-                GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude,homes[i].Longitude), GMarkerGoogleType.green_small);
-                pins.Markers.Add(pin);
+                if(homes[i].Price <= 1100)
+                {
+                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
+                    pins.Markers.Add(pin);
+                }
+                else if(homes[i].Price > 1100 && homes[i].Price <= 1300)
+                {
+                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
+                    pins.Markers.Add(pin);
+                }
+                else if (homes[i].Price > 1300)
+                {
+                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
+                    pins.Markers.Add(pin);
+                }
+
+
             }
 
 

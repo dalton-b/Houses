@@ -3,6 +3,7 @@
 Bug || Fixed Date
 Some prices showing too high (maybe not being averaged?) || TO-DO
 Pins don't appear before map is scrolled || TO-DO
+Seems to only work for Manchester || TO-DO
 
 
 

@@ -124,12 +124,21 @@ namespace Houses
             Regex priceReg = new Regex(@"&quot;bed_high&quot;:1,&quot;bed_low&quot;:1,&quot;bed_price_high&quot;:(.*?),&quot;bed_price_low&quot;:(.*?),&quot;");
             MatchCollection priceColl = priceReg.Matches(source);
             double priceTotal = 0;
+            double samplesUsed = 0;
             for (int i = 0; i < priceColl.Count; i++)
             {
-                priceTotal += Convert.ToDouble(priceColl[i].Groups[1].Value);
-                priceTotal += Convert.ToDouble(priceColl[i].Groups[2].Value);
+                if(Convert.ToDouble(priceColl[i].Groups[1].Value) != 99999)
+                {
+                    priceTotal += Convert.ToDouble(priceColl[i].Groups[1].Value);
+                    samplesUsed++;
+                }
+                if (Convert.ToDouble(priceColl[i].Groups[2].Value) != 99999)
+                {
+                    priceTotal += Convert.ToDouble(priceColl[i].Groups[2].Value);
+                    samplesUsed++;
+                }
             }
-            double price = Math.Round(priceTotal / (priceColl.Count * 2));
+            double price = Math.Round(priceTotal / samplesUsed);
 
             //Date of search
             string thisDay = DateTime.Today.ToString().Split(' ')[0];
