@@ -1,10 +1,11 @@
 ﻿Bug Tracking Database
 
 Bug || Fixed Date
-Prices showing too high (maybe not being averaged?) || NOT FIXED
+Some prices showing too high (maybe not being averaged?) || TO-DO
+Pins don't appear before map is scrolled || TO-DO
 
 
 
 
 TO-DO List
-Allow different domain inputs (right now 'Manchester' is built in to the code)
+Allow different domain inputs (right now 'Manchester' is built in to the code) || DONE
