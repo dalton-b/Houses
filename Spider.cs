@@ -38,7 +38,13 @@ namespace Houses
             MatchCollection urlColl = urlReg.Matches(source);
             for(int i = 0; i < urlColl.Count; i++)
             {
-                output.Add(urlColl[i].Groups[1].Value);
+                //get rid of urls that say "scroll to ID" and are otherwise duplicates
+                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false)
+                {
+                    output.Add(urlColl[i].Groups[1].Value);
+                    //Debug.WriteLine(urlColl[i].Groups[1].Value);
+                }
+
             }
 
             //foreach(string s in output)
@@ -75,16 +81,25 @@ namespace Houses
         //Pick out important info and add it to the database
         public Home parseHTML(string source)
         {
-            //Latitude
-            Regex latReg = new Regex(@"data-lat=\""(.*?)\""");
-            MatchCollection latColl = latReg.Matches(source);
-            double latitude = Convert.ToDouble(latColl[0].Groups[1].Value);
+            double latitude = 0;
+            double longitude = 0;
+            try
+            {
+                //Latitude
+                Regex latReg = new Regex(@"data-lat=\""(.*?)\""");
+                MatchCollection latColl = latReg.Matches(source);
+                latitude = Convert.ToDouble(latColl[0].Groups[1].Value);
 
-            //Longitude
-            Regex lngReg = new Regex(@"data-lng=\""(.*?)\""");
-            MatchCollection lngColl = lngReg.Matches(source);
-            double longitude = Convert.ToDouble(lngColl[0].Groups[1].Value);
-
+                //Longitude
+                Regex lngReg = new Regex(@"data-lng=\""(.*?)\""");
+                MatchCollection lngColl = lngReg.Matches(source);
+                longitude = Convert.ToDouble(lngColl[0].Groups[1].Value);
+            }
+            catch (System.ArgumentOutOfRangeException)
+            {
+                return null;
+            }
+            
             //Address
             Regex addressReg = new Regex(@"<span itemprop=\""streetAddress\"">(.*?), </span>");
             MatchCollection addressColl = addressReg.Matches(source);
@@ -119,7 +134,18 @@ namespace Houses
             //Date of search
             string thisDay = DateTime.Today.ToString().Split(' ')[0];
 
-            return new Home(latitude, longitude, address, city, state, url, price, thisDay);
+            if(latitude == 0 || longitude == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return new Home(latitude, longitude, address, city, state, url, price, thisDay);
+            }
+
+
+
+
         }
 
     }

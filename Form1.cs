@@ -33,40 +33,42 @@ namespace Houses
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
-            
+            string domain = "http://www.apartmentguide.com/apartments/Connecticut/Manchester/";
 
-            HashSet<string> siteHash = spider.getWebsiteList("http://www.apartmentguide.com/apartments/Connecticut/Manchester/");
+            HashSet<string> siteHash = spider.getWebsiteList(domain);
 
+            HashSet<Home> homeHash = new HashSet<Home>();
             List<Home> homes = new List<Home>();
 
-            HashSet<string> visitedHash = new HashSet<string>();
 
             //Pick out the important bits and add it to the database
-            int count = 0;
             foreach(string s in siteHash)
             {
-                if(visitedHash.Contains("http://www.apartmentguide.com/apartments/Connecticut/Manchester/" + s) != true)
-                {
-                    string source = spider.getHTML("http://www.apartmentguide.com/apartments/Connecticut/Manchester/" + s);
-                    visitedHash.Add("http://www.apartmentguide.com/apartments/Connecticut/Manchester/" + s);
-                    homes.Add(spider.parseHTML(source));
-                    homes[count].disp();
-                    count++;
-                }
-
-
+                string webAddress = domain + s;
+                string source = spider.getHTML(webAddress);
+                homeHash.Add(spider.parseHTML(source));
             }
 
-            //for(int i = 0; i < homes.Count; i++)
-            //{
-            //    homes[i].disp();
-            //}
+            foreach(Home home in homeHash)
+            {
+                if(home != null)
+                {
+                    homes.Add(home);
+                    home.disp();
+                }
+            }
+
 
             //Create markers
             GMapOverlay pins = new GMapOverlay("markers");
-            //GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(latitude, longitude), GMarkerGoogleType.green_small);
-            //pins.Markers.Add(marker);
-            //gmap.Overlays.Add(pins);
+            for (int i = 0; i < homes.Count; i++)
+            {
+                GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude,homes[i].Longitude), GMarkerGoogleType.green_small);
+                pins.Markers.Add(pin);
+            }
+
+
+            gmap.Overlays.Add(pins);
 
 
         }

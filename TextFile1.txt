@@ -1,0 +1,10 @@
+﻿Bug Tracking Database
+
+Bug || Fixed Date
+Prices showing too high (maybe not being averaged?) || NOT FIXED
+
+
+
+
+TO-DO List
+Allow different domain inputs (right now 'Manchester' is built in to the code)
