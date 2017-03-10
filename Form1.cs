@@ -34,9 +34,7 @@ namespace Houses
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
-            //The domain we'll be searching. Someday maybe it will be a text box input?
-            //string domain = "http://www.apartmentguide.com/apartments/Connecticut/Manchester/";
-
+            //Declare some strings we need for the spider
             string state = "Connecticut";
             string city = "Manchester";
             string baseUrl = "http://www.apartmentguide.com/apartments/";
@@ -81,17 +79,22 @@ namespace Houses
                 //Create a different color pin based on price
                 if(homes[i].Price <= 1100)
                 {
+                    //Create a pin
                     GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
+                    //Add some info for when the user mouses over the pin
+                    pin.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
                     pins.Markers.Add(pin);
                 }
                 else if(homes[i].Price > 1100 && homes[i].Price <= 1300)
                 {
                     GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
+                    pin.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
                     pins.Markers.Add(pin);
                 }
                 else if (homes[i].Price > 1300)
                 {
                     GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
+                    pin.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
                     pins.Markers.Add(pin);
                 }
             }

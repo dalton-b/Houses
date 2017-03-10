@@ -20,24 +20,26 @@ namespace Houses
             //Grab the HTML
             string source = getHTML(domain);
 
+            //Remove the page number from the URL
             int index = domain.IndexOf("?");
             if(index > 0)
             {
                 domain = domain.Substring(0, index);
             }
 
+            //Remove apartmentguide.com from the url
             string matchText = domain.Replace("http://www.apartmentguide.com", "");
 
-            //Search for urls by using the domain
-            // \u0022 is the " character, I was having some issues using a quote within a regex
-            //Regex urlReg = new Regex(@"href=" + '\u0022' + domain.Replace("http://www.apartmentguide.com", "") + "(.*?)\"");
-
+            //Search for new pages
+            // '\u0022' is the " character. I was having some issues getting \" to work
             Regex urlReg = new Regex(@"href=" + '\u0022' + "/apartments/(.*?)\"");
             MatchCollection urlColl = urlReg.Matches(source);
 
+            //Check if we have a 'next page'
             Regex nextReg = new Regex(@"data-tag_item='next' href='(.*?)'>");
             MatchCollection nextColl = nextReg.Matches(source);
 
+            //If we have a next page, proceed recursively
             if(nextColl.Count>0)
             {
                 Debug.WriteLine("Next: " + nextColl[0].Groups[1].Value);
@@ -49,7 +51,7 @@ namespace Houses
             {
                 //Get rid of urls that say "scroll to ID" because they're duplicates
                 //Also get rid of urls with too few '/', these all go to irrelevant pages
-                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 3)
+                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 4)
                 {
                     Debug.WriteLine("Added to website list: " + urlColl[i].Groups[1].Value);
                     output.Add(urlColl[i].Groups[1].Value);
@@ -150,7 +152,12 @@ namespace Houses
             //Date of search
             string thisDay = DateTime.Today.ToString().Split(' ')[0];
 
-            return new Home(latitude, longitude, address, city, state, url, price, thisDay);
+            //Name of apartment building
+            Regex nameReg = new Regex(@"data-property_name=\""(.*?)\""");
+            MatchCollection nameColl = nameReg.Matches(source);
+            string name = nameColl[0].Groups[1].Value;
+
+            return new Home(latitude, longitude, address, city, state, url, price, thisDay, name);
         }
     }
 }

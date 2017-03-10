@@ -13,6 +13,7 @@ Program will ignore apartments on lat 0 or lng 0 (Spider.parseHTML) || DONE (I t
 TO-DO List
 Pin color should be relative to price of results || TO-DO
 Home objects are stored in both a hashset and list in Form1, I can probably get away with just using one or the other || TO-DO
+Use multiple regexes at once to increase speed || TO-DO
 
 DONE
 Allow different domain inputs (right now 'Manchester' is built in to the code) || DONE

@@ -17,10 +17,11 @@ namespace Houses
         string _url;
         double _price;
         string _date;
+        string _name;
 
         //Constructor
         public Home(double latitude, double longitude, string address, string city, 
-            string state, string url, double price, string date)
+            string state, string url, double price, string date, string name)
         {
             _latitude = latitude;
             _longitude = longitude;
@@ -30,6 +31,7 @@ namespace Houses
             _url = url;
             _price = price;
             _date = date;
+            _name = name;
         }
 
         //For debugging purposes
@@ -148,6 +150,19 @@ namespace Houses
             set
             {
                 _date = value;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+
+            set
+            {
+                _name = value;
             }
         }
     }
