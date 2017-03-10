@@ -26,11 +26,13 @@ namespace Houses
                 domain = domain.Substring(0, index);
             }
 
+            string matchText = domain.Replace("http://www.apartmentguide.com", "");
+
             //Search for urls by using the domain
             // \u0022 is the " character, I was having some issues using a quote within a regex
             //Regex urlReg = new Regex(@"href=" + '\u0022' + domain.Replace("http://www.apartmentguide.com", "") + "(.*?)\"");
 
-            Regex urlReg = new Regex(@"href=" + '\u0022' + "/apartments/(.*?)/(.*?)/(.*?)\"");
+            Regex urlReg = new Regex(@"href=" + '\u0022' + "/apartments/(.*?)\"");
             MatchCollection urlColl = urlReg.Matches(source);
 
             Regex nextReg = new Regex(@"data-tag_item='next' href='(.*?)'>");
@@ -47,10 +49,10 @@ namespace Houses
             {
                 //Get rid of urls that say "scroll to ID" because they're duplicates
                 //Also get rid of urls with too few '/', these all go to irrelevant pages
-                if(urlColl[i].Groups[3].Value.Contains("scrollToID")==false && urlColl[i].Groups[3].Value.Split('/').Length >= 3)
+                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 3)
                 {
-                    Debug.WriteLine("Added to website list: " + urlColl[i].Groups[3].Value);
-                    output.Add(urlColl[i].Groups[3].Value);
+                    Debug.WriteLine("Added to website list: " + urlColl[i].Groups[1].Value);
+                    output.Add(urlColl[i].Groups[1].Value);
                 }
 
             }

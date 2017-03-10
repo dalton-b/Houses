@@ -35,7 +35,12 @@ namespace Houses
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
             //The domain we'll be searching. Someday maybe it will be a text box input?
-            string domain = "http://www.apartmentguide.com/apartments/Connecticut/Manchester/";
+            //string domain = "http://www.apartmentguide.com/apartments/Connecticut/Manchester/";
+
+            string state = "Connecticut";
+            string city = "Manchester";
+            string baseUrl = "http://www.apartmentguide.com/apartments/";
+            string domain = baseUrl + state + "/" + city + "/";
 
             //Retrieve the links on the given page
             //Put them in hashset to eliminate duplicates
@@ -50,7 +55,8 @@ namespace Houses
             foreach(string s in siteHash)
             {
                 //Construct the web address
-                string webAddress = domain + s;
+                string webAddress = baseUrl + s;
+                Debug.WriteLine("Web address: " + webAddress);
                 //Pull the source HTML
                 string source = spider.getHTML(webAddress);
                 //Pick out the important bits and add it to the 'database'
