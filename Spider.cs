@@ -20,10 +20,25 @@ namespace Houses
             //Grab the HTML
             string source = getHTML(domain);
 
+            int index = domain.IndexOf("?");
+            if(index > 0)
+            {
+                domain = domain.Substring(0, index);
+            }
+
             //Search for urls by using the domain
             // \u0022 is the " character, I was having some issues using a quote within a regex
             Regex urlReg = new Regex(@"href=" + '\u0022' + domain.Replace("http://www.apartmentguide.com", "") + "(.*?)\"");
             MatchCollection urlColl = urlReg.Matches(source);
+
+            Regex nextReg = new Regex(@"data-tag_item='next' href='(.*?)'>");
+            MatchCollection nextColl = nextReg.Matches(source);
+
+            if(nextColl.Count>0)
+            {
+                Debug.WriteLine("Next: " + nextColl[0].Groups[1].Value);
+                output = this.getWebsiteList("http://www.apartmentguide.com" + nextColl[0].Groups[1].Value);
+            }
 
             //Iterate over all the results and conditionally add them to the output
             for(int i = 0; i < urlColl.Count; i++)
@@ -32,6 +47,7 @@ namespace Houses
                 //Also get rid of urls with too few '/', these all go to irrelevant pages
                 if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 3)
                 {
+                    Debug.WriteLine("Added to website list: " + urlColl[i].Groups[1].Value);
                     output.Add(urlColl[i].Groups[1].Value);
                 }
 

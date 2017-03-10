@@ -35,7 +35,7 @@ namespace Houses
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
             //The domain we'll be searching. Someday maybe it will be a text box input?
-            string domain = "http://www.apartmentguide.com/apartments/Connecticut/Manchester/";
+            string domain = "http://www.apartmentguide.com/apartments/Washington/Bellevue/";
 
             //Retrieve the links on the given page
             //Put them in hashset to eliminate duplicates
