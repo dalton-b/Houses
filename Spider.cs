@@ -13,7 +13,7 @@ namespace Houses
     class Spider
     {
         //Given a domain to search, get a list of the links on that page
-        public HashSet<string> getWebsiteList(string domain)
+        public HashSet<string> getWebsiteList(string domain, int cap)
         {
             HashSet<string> output = new HashSet<string>();
 
@@ -39,25 +39,30 @@ namespace Houses
             Regex nextReg = new Regex(@"data-tag_item='next' href='(.*?)'>");
             MatchCollection nextColl = nextReg.Matches(source);
 
-            //If we have a next page, proceed recursively
-            if(nextColl.Count>0)
-            {
-                Debug.WriteLine("Next: " + nextColl[0].Groups[1].Value);
-                output = this.getWebsiteList("http://www.apartmentguide.com" + nextColl[0].Groups[1].Value);
-            }
-
             //Iterate over all the results and conditionally add them to the output
-            for(int i = 0; i < urlColl.Count; i++)
+            for (int i = 0; i < urlColl.Count; i++)
             {
                 //Get rid of urls that say "scroll to ID" because they're duplicates
                 //Also get rid of urls with too few '/', these all go to irrelevant pages
-                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 4)
+                if(urlColl[i].Groups[1].Value.Contains("scrollToID")==false && urlColl[i].Groups[1].Value.Split('/').Length >= 5)
                 {
                     Debug.WriteLine("Added to website list: " + urlColl[i].Groups[1].Value);
                     output.Add(urlColl[i].Groups[1].Value);
+                    if(output.Count>=cap && cap > 0)
+                    {
+                        return output;
+                    }
                 }
 
             }
+
+            //If we have a next page, proceed recursively
+            if (nextColl.Count > 0)
+            {
+                Debug.WriteLine("Next: " + nextColl[0].Groups[1].Value);
+                output.UnionWith(this.getWebsiteList("http://www.apartmentguide.com" + nextColl[0].Groups[1].Value, cap));
+            }
+
             return output;
         }
 
@@ -144,6 +149,8 @@ namespace Houses
                 {
                     priceTotal += Convert.ToDouble(priceColl[i].Groups[2].Value);
                     samplesUsed++;
+                    priceTotal += Convert.ToDouble(priceColl[i].Groups[1].Value);
+                    samplesUsed++;;
                 }
             }
             //Use the total and the number of prices to get the average
@@ -156,6 +163,12 @@ namespace Houses
             Regex nameReg = new Regex(@"data-property_name=\""(.*?)\""");
             MatchCollection nameColl = nameReg.Matches(source);
             string name = nameColl[0].Groups[1].Value;
+
+            //If there are no 1 bedroom apts in the building, price will be NaN
+            if(Double.IsNaN(price) == true)
+            {
+                return null;
+            }
 
             return new Home(latitude, longitude, address, city, state, url, price, thisDay, name);
         }

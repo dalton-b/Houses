@@ -36,13 +36,16 @@ namespace Houses
 
             //Declare some strings we need for the spider
             string state = "Connecticut";
+            //Use a '-' to instead of blank space when typing here
             string city = "Manchester";
+            //Cap the search at this number of pages
+            int cap = 0;
             string baseUrl = "http://www.apartmentguide.com/apartments/";
             string domain = baseUrl + state + "/" + city + "/";
 
             //Retrieve the links on the given page
             //Put them in hashset to eliminate duplicates
-            HashSet<string> siteHash = spider.getWebsiteList(domain);
+            HashSet<string> siteHash = spider.getWebsiteList(domain, cap);
 
             //Create a hashset to get rid of duplicates, and the list to get rid of nulls
             HashSet<Home> homeHash = new HashSet<Home>();
@@ -71,35 +74,63 @@ namespace Houses
                 }
             }
 
+            //Price divisions, for determining pin color
+            double[] priceDivs = new double[3];
 
-            //Create markers
-            GMapOverlay pins = new GMapOverlay("markers");
-            for (int i = 0; i < homes.Count; i++)
+            List<double> prices = new List<double>();
+
+            //Collect and sort all the prices
+            for(int i = 0; i < homes.Count; i++)
             {
-                //Create a different color pin based on price
-                if(homes[i].Price <= 1100)
+                if(Double.IsNaN(homes[i].Price) == false)
                 {
-                    //Create a pin
-                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
-                    //Add some info for when the user mouses over the pin
-                    pin.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
-                    pins.Markers.Add(pin);
-                }
-                else if(homes[i].Price > 1100 && homes[i].Price <= 1300)
-                {
-                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
-                    pin.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
-                    pins.Markers.Add(pin);
-                }
-                else if (homes[i].Price > 1300)
-                {
-                    GMarkerGoogle pin = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
-                    pin.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
-                    pins.Markers.Add(pin);
+                    prices.Add(homes[i].Price);
                 }
             }
-            //Add the pins to the map
-            gmap.Overlays.Add(pins);
+            prices.Sort();
+
+            //Divide up the set of prices into groups of equal parts
+            //Use those groups of prices to determine the bounds for each color
+            for(int i = 0; i < priceDivs.Length; i++)
+            {
+                priceDivs[i] = prices[Convert.ToInt32(Math.Round((i+1) * prices.Count / (double) (priceDivs.Length + 1)))];
+            }
+
+            //Create markers
+            GMapOverlay markers = new GMapOverlay("markers");
+
+            //Add the overlay to the map
+            //This has to come before we create the markers, otherwise
+            //the positions are thrown off
+            gmap.Overlays.Add(markers);
+
+            for (int i = 0; i < homes.Count; i++)
+            {
+                //Create a different color marker based on price
+                //Green marker
+                if(homes[i].Price <= priceDivs[0])
+                {
+                    //Create a marker
+                    GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
+                    //Add some info for when the user mouses over the pin
+                    marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
+                    markers.Markers.Add(marker);
+                }
+                //Yellow marker
+                else if (homes[i].Price > priceDivs[1] && homes[i].Price <= priceDivs[2])
+                {
+                    GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
+                    marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
+                    markers.Markers.Add(marker);
+                }
+                //Red marker
+                else if (homes[i].Price > priceDivs[2])
+                {
+                    GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
+                    marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
+                    markers.Markers.Add(marker);
+                }
+            }
         }
     }
 }
