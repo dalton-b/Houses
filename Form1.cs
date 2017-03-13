@@ -39,7 +39,7 @@ namespace Houses
             //Use a '-' to instead of blank space when typing here
             string city = "Manchester";
             //Cap the search at this number of pages
-            int cap = 0;
+            int cap = 10;
             string baseUrl = "http://www.apartmentguide.com/apartments/";
             string domain = baseUrl + state + "/" + city + "/";
 

@@ -3,6 +3,7 @@
 BUGS
 Lots of apartments are appearing under "Added to website list: " but not showing up as pins || TO-DO
 Number cap on pages probably doesn't work correctly, it hasn't been thoroughly tested || TO-DO
+Prices around $50,000 || TO-DO
 
 
 FIXED
