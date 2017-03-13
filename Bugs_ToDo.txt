@@ -1,9 +1,9 @@
 ﻿Bug Tracking Database
 
 BUGS
-Lots of apartments are appearing under "Added to website list: " but not showing up as pins || TO-DO
+
 Number cap on pages probably doesn't work correctly, it hasn't been thoroughly tested || TO-DO
-Prices around $50,000 || TO-DO
+
 
 
 FIXED
@@ -12,8 +12,8 @@ Seems to only work for Manchester || DONE (I had hard-coded in Machester where w
 Program will ignore apartments on lat 0 or lng 0 (Spider.parseHTML) || DONE (I think it was a mistake to include the problematic line of code in the first place)
 Some prices are appearing as NaN || DONE (Buildings without 1 bedroom apts were showing price as NaN)
 Pins don't appear before map is scrolled || DONE (Needed to add overlay to map before adding markers to overlay: http://stackoverflow.com/questions/30173888/gmap-net-marker-initially-in-incorrect-position)
-
-
+Prices around $50,000 || DONE (Was using the wrong index out of the price regex for some matches)
+Lots of apartments are appearing under "Added to website list: " but not showing up as pins || DONE (Not sure what this was, but fixing the above price issue seemed to fix it)
 
 
 TO-DO LIST
@@ -21,7 +21,7 @@ Home objects are stored in both a hashset and list in Form1, I can probably get 
 Use multiple regexes at once to increase speed || TO-DO
 Run over an entire state? Country? (Should probably insert pauses so I don't DDoS them)|| TO-DO
 Store info to a database so I can access it any time ||TO-DO
-Insert a cap, so you can retrieve the first x apartments it find, and not 500 || TO-DO
+
 
 
 
@@ -29,5 +29,5 @@ Insert a cap, so you can retrieve the first x apartments it find, and not 500 ||
 DONE
 Allow different domain inputs (right now 'Manchester' is built in to the code) || DONE
 Pin color should be relative to price of results || DONE
-
+Insert a cap, so you can retrieve the first x apartments it find, and not 500 || DONE
 
