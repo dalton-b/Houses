@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using GMap.NET;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Houses
 {
@@ -64,6 +65,10 @@ namespace Houses
                 homeHash.Add(spider.parseHTML(source));
             }
 
+            Excel.Application xlApp = new Excel.Application();
+            Excel.Workbook xlWB = xlApp.Workbooks.Open("C:\\Users\\dbassett\\Documents\\Visual Studio 2015\\Projects\\Houses\\HousesDB.xlsx");
+            Excel.Worksheet xlSheet = (Excel.Worksheet)xlWB.Worksheets[1];
+
             //Add them to a list if they're not null
             foreach(Home home in homeHash)
             {
@@ -71,7 +76,16 @@ namespace Houses
                 {
                     homes.Add(home);
                     home.disp();
-
+                    int rowNum = homes.Count + 2;
+                    xlSheet.Range["A" + rowNum, "A" + rowNum].Value2 = home.Name;
+                    xlSheet.Range["B" + rowNum, "B" + rowNum].Value2 = home.Address;
+                    xlSheet.Range["C" + rowNum, "C" + rowNum].Value2 = home.City;
+                    xlSheet.Range["D" + rowNum, "D" + rowNum].Value2 = home.State;
+                    xlSheet.Range["E" + rowNum, "E" + rowNum].Value2 = home.Price;
+                    xlSheet.Range["F" + rowNum, "F" + rowNum].Value2 = home.Latitude;
+                    xlSheet.Range["G" + rowNum, "G" + rowNum].Value2 = home.Longitude;
+                    xlSheet.Range["H" + rowNum, "H" + rowNum].Value2 = home.Url;
+                    xlSheet.Range["I" + rowNum, "I" + rowNum].Value2 = home.Date;
                 }
             }
 
