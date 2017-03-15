@@ -53,6 +53,7 @@ namespace Houses
 
         }
 
+        //Compare Home objects using the site-given ID numbers
         public int CompareTo(object obj)
         {
             return String.Compare(_id, ((Home)obj).Id);

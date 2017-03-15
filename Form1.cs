@@ -27,74 +27,26 @@ namespace Houses
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //Create the spider object so it can start crawlin' the web
-            Spider spider = new Houses.Spider();
+            ////Declare some strings we need for the spider
+            //string state = "Connecticut";
+            ////Use a '-' to instead of blank space when typing here
+            //string city = "Manchester";
 
-
-            //Declare some strings we need for the spider
-            string state = "Connecticut";
-            //Use a '-' to instead of blank space when typing here
-            string city = "Manchester";
-            //Cap the search at this number of pages
-            int cap = 15;
-            string baseUrl = "http://www.apartmentguide.com/apartments/";
-            string domain = baseUrl + state + "/" + city + "/";
-
+            //Creates a new database object out of the given Excel file
             Database xlDB = new Database("C:\\Users\\dbassett\\Documents\\Visual Studio 2015\\Projects\\Houses\\HousesDB.xlsx");
 
-            //Retrieve the links on the given page
-            //Put them in hashset to eliminate duplicates
-            HashSet<string> siteHash = spider.getWebsiteList(domain, cap);
+            //Stores the apartment info for that city and state in the given database
+            //storeWebInfo(xlDB, "Connecticut", "Manchester");
+            //storeWebInfo(xlDB, "Connecticut", "Hartford");
+            //storeWebInfo(xlDB, "Connecticut", "West-Hartford");
 
-            //Create a hashset to get rid of duplicates, and the list to get rid of nulls
-            HashSet<Home> homeHash = new HashSet<Home>();
-
-            //Iterate over each link we grabbed
-            foreach (string s in siteHash)
-            {
-                //Construct the web address
-                string webAddress = baseUrl + s;
-                Debug.WriteLine("Web address: " + webAddress);
-                //Pull the source HTML
-                string source = spider.getHTML(webAddress);
-                //Pick out the important bits and add it to the 'database'
-                homeHash.Add(spider.parseHTML(source));
-            }
-
-
-
-
-
-            //Add them to a list if they're not null
-            foreach (Home home in homeHash)
-            {
-                if (home != null)
-                {
-
-                    bool isDuplicate = false;
-                    foreach (Home DBhome in xlDB.getAsHashSet())
-                    {
-                        if (DBhome.CompareTo(home) == 0)
-                        {
-                            isDuplicate = true;
-                            break;
-                        }
-                    }
-
-                    if (!isDuplicate)
-                    {
-                        xlDB.add(home);
-                    }
-                }
-            }
-
+            //Get a list of home objects from the database
             List<Home> homes = xlDB.getAsHashSet().ToList();
-            Debug.WriteLine("homes count: " + homes.Count);
 
             xlDB.saveAndClose();
 
             //Price divisions, for determining pin color
-            double[] priceDivs = new double[3];
+            double[] priceDivs = new double[2];
 
             List<double> prices = new List<double>();
 
@@ -143,14 +95,14 @@ namespace Houses
                     markers.Markers.Add(marker);
                 }
                 //Yellow marker
-                else if (homes[i].Price > priceDivs[1] && homes[i].Price <= priceDivs[2])
+                else if (homes[i].Price > priceDivs[0] && homes[i].Price <= priceDivs[1])
                 {
                     GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
                     marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
                     markers.Markers.Add(marker);
                 }
                 //Red marker
-                else if (homes[i].Price > priceDivs[2])
+                else if (homes[i].Price > priceDivs[1])
                 {
                     GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
                     marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
@@ -160,9 +112,58 @@ namespace Houses
         }
 
 
-        
+        private void storeWebInfo(Database xlDB, string state, string city)
+        {
+            //Create the spider object so it can start crawlin' the web
+            Spider spider = new Houses.Spider();
+
+            //Cap the search at this number of pages
+            int cap = 0;
+            string baseUrl = "http://www.apartmentguide.com/apartments/";
+            string domain = baseUrl + state + "/" + city + "/";
+
+            //Retrieve the links on the given page
+            //Put them in hashset to eliminate duplicates
+            HashSet<string> siteHash = spider.getWebsiteList(domain, cap);
 
 
+            //Create a hashset to get rid of duplicates, and the list to get rid of nulls
+            HashSet<Home> homeHash = new HashSet<Home>();
 
+            //Iterate over each link we grabbed
+            foreach (string s in siteHash)
+            {
+                //Construct the web address
+                string webAddress = baseUrl + s;
+                Debug.WriteLine("Web address: " + webAddress);
+                //Pull the source HTML
+                string source = spider.getHTML(webAddress);
+                //Pick out the important bits and add it to the 'database'
+                homeHash.Add(spider.parseHTML(source));
+            }
+
+            //Add them to a list if they're not null
+            foreach (Home home in homeHash)
+            {
+                if (home != null)
+                {
+
+                    bool isDuplicate = false;
+                    foreach (Home DBhome in xlDB.getAsHashSet())
+                    {
+                        if (DBhome.CompareTo(home) == 0)
+                        {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (!isDuplicate)
+                    {
+                        xlDB.add(home);
+                    }
+                }
+            }
+        }//End of storeWebInfo
     }
 }

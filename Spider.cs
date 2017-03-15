@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Houses
@@ -84,6 +85,10 @@ namespace Houses
             {
                 source = reader.ReadToEnd();
             }
+
+            //Use this to make sure you don't DDoS them
+            //Thread.Sleep(5000);
+
             return source;
         }
 

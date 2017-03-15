@@ -17,25 +17,28 @@ namespace Houses
         Excel.Worksheet _xlSheet;
 
 
-
+        //Constructor: Opens Excel, the workbook, and the worksheet
         public Database(string filePath)
         {
             _filePath = filePath;
             _xlApp = new Excel.Application();
-            _xlApp.Visible = true;
+            //_xlApp.Visible = true;
             _xlWB = _xlApp.Workbooks.Open(filePath);
             _xlSheet = (Excel.Worksheet)_xlWB.Worksheets[1];
         }
 
+        //Add a home object to the sheet
         public void add(Home home)
         {
             int count = 1;
 
+            //Move past nonempty cells
             while(!String.IsNullOrEmpty(_xlSheet.Range["A" + count, "A" + count].Value2))
             {
                 count++;
             }
  
+            //Add the data to the respective columns
             _xlSheet.Range["A" + count, "A" + count].Value2 = home.Name;
             _xlSheet.Range["B" + count, "B" + count].Value2 = home.Address;
             _xlSheet.Range["C" + count, "C" + count].Value2 = home.City;
@@ -49,6 +52,7 @@ namespace Houses
             count++;
         }
 
+        //Return a home object given its row index in the Excel sheet
         public Home getByRow(int row)
         {
             string name;
@@ -76,12 +80,14 @@ namespace Houses
             return new Home(latitude, longitude, address, city, state, url, price, date, name, id);
         }
 
+        //Return the contents of the sheet as a hashset
         public HashSet<Home> getAsHashSet()
         {
             HashSet<Home> homeHash = new HashSet<Home>();
 
             int row = 1;
 
+            //Iterate until we find an empty cell
             while (!String.IsNullOrEmpty(_xlSheet.Range["A" + row, "A" + row].Value2))
             {
                 string name;
@@ -113,6 +119,7 @@ namespace Houses
             return homeHash;
         }
 
+        //Save and close the Excel file
         public void saveAndClose()
         {
             _xlWB.Save();
