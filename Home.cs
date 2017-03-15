@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Houses
 {
-    public class Home
+    public class Home : IComparable
     {
         double _latitude;
         double _longitude;
@@ -48,7 +48,14 @@ namespace Houses
             //Debug.WriteLine("URL: " + _url);
             Debug.WriteLine("Price: " + _price);
             Debug.WriteLine("Date: " + _date);
+            Debug.WriteLine("Name: " + _name);
+            Debug.WriteLine("ID: " + _id);
 
+        }
+
+        public int CompareTo(object obj)
+        {
+            return String.Compare(_id, ((Home)obj).Id);
         }
 
         //Getters and setters

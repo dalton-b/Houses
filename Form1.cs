@@ -30,19 +30,17 @@ namespace Houses
             //Create the spider object so it can start crawlin' the web
             Spider spider = new Houses.Spider();
 
-            //Set up the map and center it
-            gmap.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
-            GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
-            gmap.SetPositionByKeywords("Hartford, Connecticut");
 
             //Declare some strings we need for the spider
             string state = "Connecticut";
             //Use a '-' to instead of blank space when typing here
             string city = "Manchester";
             //Cap the search at this number of pages
-            int cap = 0;
+            int cap = 15;
             string baseUrl = "http://www.apartmentguide.com/apartments/";
             string domain = baseUrl + state + "/" + city + "/";
+
+            Database xlDB = new Database("C:\\Users\\dbassett\\Documents\\Visual Studio 2015\\Projects\\Houses\\HousesDB.xlsx");
 
             //Retrieve the links on the given page
             //Put them in hashset to eliminate duplicates
@@ -50,11 +48,9 @@ namespace Houses
 
             //Create a hashset to get rid of duplicates, and the list to get rid of nulls
             HashSet<Home> homeHash = new HashSet<Home>();
-            List<Home> homes = new List<Home>();
-
 
             //Iterate over each link we grabbed
-            foreach(string s in siteHash)
+            foreach (string s in siteHash)
             {
                 //Construct the web address
                 string webAddress = baseUrl + s;
@@ -65,29 +61,37 @@ namespace Houses
                 homeHash.Add(spider.parseHTML(source));
             }
 
-            Excel.Application xlApp = new Excel.Application();
-            Excel.Workbook xlWB = xlApp.Workbooks.Open("C:\\Users\\dbassett\\Documents\\Visual Studio 2015\\Projects\\Houses\\HousesDB.xlsx");
-            Excel.Worksheet xlSheet = (Excel.Worksheet)xlWB.Worksheets[1];
+
+
+
 
             //Add them to a list if they're not null
-            foreach(Home home in homeHash)
+            foreach (Home home in homeHash)
             {
-                if(home != null)
+                if (home != null)
                 {
-                    homes.Add(home);
-                    home.disp();
-                    int rowNum = homes.Count + 2;
-                    xlSheet.Range["A" + rowNum, "A" + rowNum].Value2 = home.Name;
-                    xlSheet.Range["B" + rowNum, "B" + rowNum].Value2 = home.Address;
-                    xlSheet.Range["C" + rowNum, "C" + rowNum].Value2 = home.City;
-                    xlSheet.Range["D" + rowNum, "D" + rowNum].Value2 = home.State;
-                    xlSheet.Range["E" + rowNum, "E" + rowNum].Value2 = home.Price;
-                    xlSheet.Range["F" + rowNum, "F" + rowNum].Value2 = home.Latitude;
-                    xlSheet.Range["G" + rowNum, "G" + rowNum].Value2 = home.Longitude;
-                    xlSheet.Range["H" + rowNum, "H" + rowNum].Value2 = home.Url;
-                    xlSheet.Range["I" + rowNum, "I" + rowNum].Value2 = home.Date;
+
+                    bool isDuplicate = false;
+                    foreach (Home DBhome in xlDB.getAsHashSet())
+                    {
+                        if (DBhome.CompareTo(home) == 0)
+                        {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (!isDuplicate)
+                    {
+                        xlDB.add(home);
+                    }
                 }
             }
+
+            List<Home> homes = xlDB.getAsHashSet().ToList();
+            Debug.WriteLine("homes count: " + homes.Count);
+
+            xlDB.saveAndClose();
 
             //Price divisions, for determining pin color
             double[] priceDivs = new double[3];
@@ -111,6 +115,13 @@ namespace Houses
                 priceDivs[i] = prices[Convert.ToInt32(Math.Round((i+1) * prices.Count / (double) (priceDivs.Length + 1)))];
             }
 
+
+
+            //Set up the map and center it
+            gmap.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
+            GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
+            gmap.SetPositionByKeywords("Hartford, Connecticut");
+
             //Create markers
             GMapOverlay markers = new GMapOverlay("markers");
 
@@ -123,7 +134,7 @@ namespace Houses
             {
                 //Create a different color marker based on price
                 //Green marker
-                if(homes[i].Price <= priceDivs[0])
+                if (homes[i].Price <= priceDivs[0])
                 {
                     //Create a marker
                     GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
@@ -147,5 +158,11 @@ namespace Houses
                 }
             }
         }
+
+
+        
+
+
+
     }
 }

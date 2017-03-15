@@ -143,27 +143,18 @@ namespace Houses
                 if (Convert.ToDouble(priceColl[i].Groups[1].Value) <= 90000)
                 {
                     priceTotal += Convert.ToDouble(priceColl[i].Groups[1].Value);
-                    Debug.WriteLine("Current price: " + priceColl[i].Groups[1].Value);
-                    Debug.WriteLine("Running total: " + priceTotal);
                     samplesUsed++;
                 }
                 if (Convert.ToDouble(priceColl[i].Groups[2].Value) <= 90000)
                 {
                     priceTotal += Convert.ToDouble(priceColl[i].Groups[2].Value);
                     samplesUsed++;
-                    Debug.WriteLine("Current price: " + priceColl[i].Groups[2].Value);
-                    Debug.WriteLine("Running total: " + priceTotal);
                     priceTotal += Convert.ToDouble(priceColl[i].Groups[2].Value);
                     samplesUsed++;
-                    Debug.WriteLine("Current price: " + priceColl[i].Groups[2].Value);
-                    Debug.WriteLine("Running total: " + priceTotal);
                 }
             }
             //Use the total and the number of prices to get the average
             double price = Math.Round(priceTotal / samplesUsed);
-            Debug.WriteLine("Final total: " + priceTotal);
-            Debug.WriteLine("Samples used: " + samplesUsed);
-            Debug.WriteLine("Final price: " + price);
 
             //Date of search
             string thisDay = DateTime.Today.ToString().Split(' ')[0];
@@ -174,7 +165,7 @@ namespace Houses
             string name = nameColl[0].Groups[1].Value;
 
             //Listing ID
-            Regex idReg = new Regex(@"\""listing_id\"":\""(.*?)\");
+            Regex idReg = new Regex(@"\""listing_id\"":\""(.*?)\""");
             MatchCollection idColl = idReg.Matches(source);
             string id = idColl[0].Groups[1].Value;
 

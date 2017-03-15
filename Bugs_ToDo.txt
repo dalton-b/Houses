@@ -2,7 +2,7 @@
 
 BUGS
 
-Number cap on pages probably doesn't work correctly, it hasn't been thoroughly tested || TO-DO
+
 
 
 
@@ -14,7 +14,7 @@ Some prices are appearing as NaN || DONE (Buildings without 1 bedroom apts were 
 Pins don't appear before map is scrolled || DONE (Needed to add overlay to map before adding markers to overlay: http://stackoverflow.com/questions/30173888/gmap-net-marker-initially-in-incorrect-position)
 Prices around $50,000 || DONE (Was using the wrong index out of the price regex for some matches)
 Lots of apartments are appearing under "Added to website list: " but not showing up as pins || DONE (Not sure what this was, but fixing the above price issue seemed to fix it)
-
+Number cap on pages probably doesn't work correctly, it hasn't been thoroughly tested || DONE (It actually does appear to work correctly, ha HA)
 
 TO-DO LIST
 Home objects are stored in both a hashset and list in Form1, I can probably get away with just using one or the other || TO-DO
