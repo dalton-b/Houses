@@ -2,10 +2,6 @@
 
 BUGS
 
-
-
-
-
 FIXED
 Some prices showing too high (maybe not being averaged?) || DONE (They used 99999 randomly)
 Seems to only work for Manchester || DONE (I had hard-coded in Machester where we get the website list)
@@ -21,14 +17,11 @@ TO-DO LIST
 Home objects are stored in both a hashset and list in Form1, I can probably get away with just using one or the other || TO-DO
 Use multiple regexes at once to increase speed || TO-DO
 Run over an entire state? Country? (Should probably insert pauses so I don't DDoS them)|| TO-DO
-Store info to a database so I can access it any time ||TO-DO
-
-
-
 
 
 DONE
 Allow different domain inputs (right now 'Manchester' is built in to the code) || DONE
 Pin color should be relative to price of results || DONE
 Insert a cap, so you can retrieve the first x apartments it find, and not 500 || DONE
+Store info to a database so I can access it any time || DONE
 
