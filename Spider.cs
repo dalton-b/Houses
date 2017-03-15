@@ -173,13 +173,18 @@ namespace Houses
             MatchCollection nameColl = nameReg.Matches(source);
             string name = nameColl[0].Groups[1].Value;
 
+            //Listing ID
+            Regex idReg = new Regex(@"\""listing_id\"":\""(.*?)\");
+            MatchCollection idColl = idReg.Matches(source);
+            string id = idColl[0].Groups[1].Value;
+
             //If there are no 1 bedroom apts in the building, price will be NaN
             if(Double.IsNaN(price) == true)
             {
                 return null;
             }
 
-            return new Home(latitude, longitude, address, city, state, url, price, thisDay, name);
+            return new Home(latitude, longitude, address, city, state, url, price, thisDay, name, id);
         }
     }
 }
