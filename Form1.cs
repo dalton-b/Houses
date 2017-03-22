@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using GMap.NET;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Houses
 {
@@ -26,84 +27,143 @@ namespace Houses
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //Set up the map(???) and center it on Harford
+            ////Declare some strings we need for the spider
+            //string state = "Connecticut";
+            ////Use a '-' to instead of blank space when typing here
+            //string city = "Manchester";
+
+            //Creates a new database object out of the given Excel file
+            Database xlDB = new Database("C:\\Users\\dbassett\\Documents\\Visual Studio 2015\\Projects\\Houses\\HousesDB.xlsx");
+
+            //Stores the apartment info for that city and state in the given database
+            //storeWebInfo(xlDB, "Connecticut", "Manchester");
+            //storeWebInfo(xlDB, "Connecticut", "Hartford");
+            //storeWebInfo(xlDB, "Connecticut", "West-Hartford");
+
+            //Get a list of home objects from the database
+            List<Home> homes = xlDB.getAsHashSet().ToList();
+
+            xlDB.saveAndClose();
+
+            //Price divisions, for determining pin color
+            double[] priceDivs = new double[2];
+
+            List<double> prices = new List<double>();
+
+            //Collect and sort all the prices
+            for(int i = 0; i < homes.Count; i++)
+            {
+                if(Double.IsNaN(homes[i].Price) == false)
+                {
+                    prices.Add(homes[i].Price);
+                }
+            }
+            prices.Sort();
+
+            //Divide up the set of prices into groups of equal parts
+            //Use those groups of prices to determine the bounds for each color
+            for(int i = 0; i < priceDivs.Length; i++)
+            {
+                priceDivs[i] = prices[Convert.ToInt32(Math.Round((i+1) * prices.Count / (double) (priceDivs.Length + 1)))];
+            }
+
+
+
+            //Set up the map and center it
             gmap.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
             gmap.SetPositionByKeywords("Hartford, Connecticut");
 
-            //Get the HTML
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create("http://www.apartmentguide.com/apartments/Connecticut/Simsbury/Mill-Commons/187207/");
-            //I think we need cookies
-            request.CookieContainer = new CookieContainer();
-            //Not totally sure what this does
-            request.AllowAutoRedirect = false;
-            //Pretend we're the googlebot by using its user agent
-            request.UserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
-            //Not at all sure what this does
-            request.Method = "GET";
-            //Read the HTML and store it in this string
-            string source;
-            using (StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream()))
+            //Create markers
+            GMapOverlay markers = new GMapOverlay("markers");
+
+            //Add the overlay to the map
+            //This has to come before we create the markers, otherwise
+            //the positions are thrown off
+            gmap.Overlays.Add(markers);
+
+            for (int i = 0; i < homes.Count; i++)
             {
-                source = reader.ReadToEnd();
+                //Create a different color marker based on price
+                //Green marker
+                if (homes[i].Price <= priceDivs[0])
+                {
+                    //Create a marker
+                    GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.green_small);
+                    //Add some info for when the user mouses over the pin
+                    marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
+                    markers.Markers.Add(marker);
+                }
+                //Yellow marker
+                else if (homes[i].Price > priceDivs[0] && homes[i].Price <= priceDivs[1])
+                {
+                    GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.yellow_small);
+                    marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
+                    markers.Markers.Add(marker);
+                }
+                //Red marker
+                else if (homes[i].Price > priceDivs[1])
+                {
+                    GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(homes[i].Latitude, homes[i].Longitude), GMarkerGoogleType.red_small);
+                    marker.ToolTipText = homes[i].Name + "\n" + homes[i].Address + "\n1 Bedroom: $" + homes[i].Price;
+                    markers.Markers.Add(marker);
+                }
+            }
+        }
+
+
+        private void storeWebInfo(Database xlDB, string state, string city)
+        {
+            //Create the spider object so it can start crawlin' the web
+            Spider spider = new Houses.Spider();
+
+            //Cap the search at this number of pages
+            int cap = 0;
+            string baseUrl = "http://www.apartmentguide.com/apartments/";
+            string domain = baseUrl + state + "/" + city + "/";
+
+            //Retrieve the links on the given page
+            //Put them in hashset to eliminate duplicates
+            HashSet<string> siteHash = spider.getWebsiteList(domain, cap);
+
+
+            //Create a hashset to get rid of duplicates, and the list to get rid of nulls
+            HashSet<Home> homeHash = new HashSet<Home>();
+
+            //Iterate over each link we grabbed
+            foreach (string s in siteHash)
+            {
+                //Construct the web address
+                string webAddress = baseUrl + s;
+                Debug.WriteLine("Web address: " + webAddress);
+                //Pull the source HTML
+                string source = spider.getHTML(webAddress);
+                //Pick out the important bits and add it to the 'database'
+                homeHash.Add(spider.parseHTML(source));
             }
 
-            //Pick out the important bits and add it to the database
-            parseHTML(source);
+            //Add them to a list if they're not null
+            foreach (Home home in homeHash)
+            {
+                if (home != null)
+                {
 
-            //Create markers
-            GMapOverlay pins = new GMapOverlay("markers");
-            //GMarkerGoogle marker = new GMarkerGoogle(new PointLatLng(latitude, longitude), GMarkerGoogleType.green_small);
-            //pins.Markers.Add(marker);
-            //gmap.Overlays.Add(pins);
+                    bool isDuplicate = false;
+                    foreach (Home DBhome in xlDB.getAsHashSet())
+                    {
+                        if (DBhome.CompareTo(home) == 0)
+                        {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
 
-
-        }
-
-        //Pick out important info and add it to the database
-        public void parseHTML(string source)
-        {
-            //Latitude
-            Regex latReg = new Regex(@"data-lat=\""(.*?)\""");
-            MatchCollection latColl = latReg.Matches(source);
-            double latitude = Convert.ToDouble(latColl[0].Groups[1].Value);
-            Debug.WriteLine("Latitude: " + latitude);
-
-            //Longitude
-            Regex lngReg = new Regex(@"data-lng=\""(.*?)\""");
-            MatchCollection lngColl = lngReg.Matches(source);
-            double longitude = Convert.ToDouble(lngColl[0].Groups[1].Value);
-            Debug.WriteLine("Longitude: " + longitude);
-
-            //Address
-
-            //City
-            Regex cityReg = new Regex(@"city&quot;:&quot;(.*?)&quot;");
-            MatchCollection cityColl = cityReg.Matches(source);
-            string city = cityColl[0].Groups[1].Value;
-            Debug.WriteLine("City: " + city);
-
-            //State
-            Regex stateReg = new Regex(@"state&quot;:&quot;(.*?)&quot;");
-            MatchCollection stateColl = stateReg.Matches(source);
-            string state = stateColl[0].Groups[1].Value;
-            Debug.WriteLine("State: " + state);
-
-
-            //URL
-            Regex urlReg = new Regex(@"href=\'(.*?)\'");
-            MatchCollection urlColl = urlReg.Matches(source);
-            string url = urlColl[0].Groups[1].Value;
-            Debug.WriteLine("URL: " + url);
-
-            //Price (average in building for a 1 bedroom)
-
-
-
-            //Date of search
-            string thisDay = DateTime.Today.ToString();
-            Debug.WriteLine(thisDay);
-        }
-
+                    if (!isDuplicate)
+                    {
+                        xlDB.add(home);
+                    }
+                }
+            }
+        }//End of storeWebInfo
     }
 }
